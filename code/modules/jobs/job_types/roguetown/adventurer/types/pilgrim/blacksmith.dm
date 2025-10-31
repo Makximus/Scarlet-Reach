@@ -8,7 +8,8 @@
 
 	category_tags = list(CTAG_PILGRIM, CTAG_TOWNER)
 
-	traits_applied = list(TRAIT_TRAINED_SMITH, TRAIT_MEDIUMARMOR)
+	traits_applied = list(TRAIT_TRAINED_SMITH, TRAIT_MEDIUMARMOR, TRAIT_PEASANTMILITIA)
+	total_positions = 2
 	subclass_stats = list(
 		STATKEY_END = 2,
 		STATKEY_CON = 2,
