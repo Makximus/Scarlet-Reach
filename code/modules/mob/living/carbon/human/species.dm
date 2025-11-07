@@ -1235,7 +1235,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 				SEND_SIGNAL(user, COMSIG_HEAD_PUNCHED, target)
 		log_combat(user, target, "punched")
 		if(ishuman(user) && user.mind)
-			var/text = "[bodyzone2readablezone(user.zone_selected)]..."
+			var/text = "[bodyzone2readablezone(selzone)]..."
 			user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
 
 		if(!nodmg)
@@ -1448,7 +1448,7 @@ GLOBAL_LIST_EMPTY(roundstart_races)
 			log_combat(user, target, "kicked")
 
 			if(ishuman(user) && user.mind)
-				var/text = "[bodyzone2readablezone(user.zone_selected)]..."
+				var/text = "[bodyzone2readablezone(selzone)]..."
 				user.filtered_balloon_alert(TRAIT_COMBAT_AWARE, text)
 
 			user.do_attack_animation(target, ATTACK_EFFECT_DISARM)
