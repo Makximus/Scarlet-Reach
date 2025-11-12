@@ -24,7 +24,6 @@
 
 	virtue_restrictions = list(
 		/datum/virtue/utility/failed_squire,
-		/datum/virtue/utility/blacksmith, // we don't want you repairing your stuff in combat, sorry...
 	)
 	cmode_music = 'sound/music/combat_guard.ogg'
 
