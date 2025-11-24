@@ -526,7 +526,7 @@
 		ADD_TRAIT(H, TRAIT_SEEDKNOW, TRAIT_GENERIC)
 		H.adjust_skillrank(/datum/skill/labor/farming, 1, TRUE)
 		H.adjust_skillrank(/datum/skill/misc/climbing, 1, TRUE)
-		H.adjust_skillrank(/datum/skill/craft/crafting, 1, TRUE) // we are a litteral forest dweller, we should atleast not be cluess about such things, even abyssorites get badass combat stuff
+		H.adjust_skillrank(/datum/skill/craft/crafting, 1, TRUE) // we are a literal forest dweller, we should atleast not be cluless about such things, even abyssorites get badass combat stuff
 		H.adjust_skillrank(/datum/skill/craft/cooking, 1, TRUE)
 		H.adjust_skillrank(/datum/skill/labor/fishing, 1, TRUE)
 	if(H.patron?.type == /datum/patron/divine/astrata)
