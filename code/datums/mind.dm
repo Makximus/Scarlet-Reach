@@ -176,16 +176,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 		known_people[H.real_name]["FAGE"] = H.age
 		if(H.family_datum)
 			known_people[H.real_name]["FHOUSE"] = H.family_datum.housename
-			var/datum/family_member/FM = H.family_datum.GetMemberForPerson(H)
-			if(FM && FM.spouses.len)
-				var/list/spouse_list = list()
-				for(var/datum/family_member/S in FM.spouses)
-					if(S.person)
-						spouse_list += S.person.real_name
-				if(spouse_list.len)
-					if(!(H.real_name in M.known_people))
-						M.known_people[H.real_name] = list()
-					known_people[H.real_name]["FSPOUSE"] = jointext(spouse_list, ", ")
 		if (ishuman(current))
 			var/mob/living/carbon/human/C = current
 			var/heretic_text = H.get_heretic_symbol(C)
@@ -225,20 +215,6 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 				M.known_people[H.real_name]["FAGE"] = H.age
 				if(H.family_datum)
 					M.known_people[H.real_name]["FHOUSE"] = H.family_datum.housename
-					var/datum/family_member/FM = H.family_datum.GetMemberForPerson(H)
-					if(FM && FM.spouses.len)
-						var/list/spouse_list = list()
-						for(var/datum/family_member/S in FM.spouses)
-							if(S.person)
-								spouse_list += S.person.real_name
-						if(spouse_list.len)
-							known_people[H.real_name]["FSPOUSE"] = jointext(spouse_list, ", ")
-						if(ishuman(M.current))
-							var/mob/living/carbon/human/C = M.current
-							var/heretic_text = C.get_heretic_symbol(H)
-							if(heretic_text)
-								M.known_people[H.real_name]["FHERESY"] = heretic_text
-
 
 /datum/mind/proc/do_i_know(datum/mind/person, name)
 	if(!person && !name)
@@ -286,12 +262,11 @@ GLOBAL_LIST_EMPTY(personal_objective_minds)
 		var/fspecies = known_people[P]["FSPECIES"]
 		var/fage = known_people[P]["FAGE"]
 		var/fhouse = known_people[P]["FHOUSE"]
-		var/fspouse = known_people[P]["FSPOUSE"]
 		var/fheresy = known_people[P]["FHERESY"]
 		if(fcolor && fjob)
 			if (fheresy)
 				contents +="<B><font color=#f1d669>[fheresy]</font></B> "
-			contents += "<B><font color=#[fcolor];text-shadow:0 0 10px #8d5958, 0 0 20px #8d5958, 0 0 30px #8d5958, 0 0 40px #8d5958, 0 0 50px #e60073, 0 0 60px #8d5958, 0 0 70px #8d5958;>[P]</font></B><BR>[fjob], [fspecies], [capitalize(fgender)], [fage][fhouse ? "<br><b>House [fhouse]</b>" : ""][fspouse ? "<br>Married to [fspouse]" : ""]"
+			contents += "<B><font color=#[fcolor];text-shadow:0 0 10px #8d5958, 0 0 20px #8d5958, 0 0 30px #8d5958, 0 0 40px #8d5958, 0 0 50px #e60073, 0 0 60px #8d5958, 0 0 70px #8d5958;>[P]</font></B><BR>[fjob], [fspecies], [capitalize(fgender)], [fage][fhouse ? "<br><b>House [fhouse]</b>" : ""]"
 			contents += "<BR>"
 
 	var/datum/browser/popup = new(user, "PEOPLEIKNOW", "", 260, 400)
