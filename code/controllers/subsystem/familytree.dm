@@ -30,44 +30,35 @@ SUBSYSTEM_DEF(familytree)
 	*/
 	var/list/viable_spouses = list()
 	//These jobs are excluded from AddLocal()
-	var/excluded_jobs = list(
-		/datum/job/roguetown/lord,
-		/datum/job/roguetown/suitor,
-		/datum/job/roguetown/lady,
-		/datum/job/roguetown/prince,
-		/datum/job/roguetown/hand,
-		/datum/job/roguetown/nightmaiden,
-		/datum/job/roguetown/prisonerr,
-		/datum/job/roguetown/wretch,
-		/datum/job/roguetown/bandit,
-		/datum/job/roguetown/absolver,
-		/datum/job/roguetown/orthodoxist,
-		/datum/job/roguetown/puritan,
+	var/list/excluded_jobs = list(
+		"Grand Duke",
+		"Grand Duchess",
+		"Consort",
+		"Suitor",
+		"Hand",
+		"Prince",
+		"Wretch",
+		"Bandit",
+		"Absolver",
+		"Orthodoxist",
+		"Inquisitor",
+		)
+	var/list/nomarry_jobs = list(
+		"Nightswain",
+		"Churchling",
+		"Acolyte",
+		"Priest",
 		)
 	//This creates 2 families for each race roundstart so that siblings dont fail to be added to a family.
 	var/list/preset_family_species = list(
 		/datum/species/human/northern,
-		/datum/species/human/halfelf,
+		/datum/species/elf,
 		/datum/species/elf/dark,
-		/datum/species/elf/wood,
+		/datum/species/human/halfelf,
 		/datum/species/dwarf/mountain,
 		/datum/species/tieberian,
 		/datum/species/aasimar,
-		/datum/species/lizardfolk,
-		/datum/species/lupian,
-		/datum/species/tabaxi,
-		/datum/species/vulpkanin,
-		/datum/species/akula,
-		/datum/species/moth,
-		/datum/species/dracon,
-		/datum/species/anthromorph,
-		/datum/species/demihuman,
-		/datum/species/halforc,
-		/datum/species/kobold,
-		/datum/species/goblinp,
-		/datum/species/dullahan,
-		/datum/species/lamia,
-		/datum/species/harpy,
+		/datum/species/halforc
 		)
 
 /datum/controller/subsystem/familytree/Initialize()
@@ -103,27 +94,28 @@ SUBSYSTEM_DEF(familytree)
 
 		// Check if person is too young to be parent of existing children
 		for(var/datum/family_member/child in member.children)
-			if(child.person && !CanBeParentOf(person.age, child.person.age))
+			if(child.person && !CanBeParentOf(person, child.person))
 				return TRUE
 
 		// Check if person is too old to be child of existing parents
 		for(var/datum/family_member/parent in member.parents)
-			if(parent.person && !CanBeParentOf(parent.person.age, person.age))
+			if(parent.person && !CanBeParentOf(parent.person, person))
 				return TRUE
 
 	return FALSE
 
-/datum/controller/subsystem/familytree/proc/CanBeParentOf(parent_age, child_age)
-	// Parent must be at least one age category higher than child
-	// Exception: Adults can have Youngling children
-	if(parent_age == AGE_ADULT)
-		return TRUE
-	if(parent_age == AGE_MIDDLEAGED && child_age == AGE_ADULT)
-		return TRUE
-	if(parent_age == AGE_OLD && child_age != AGE_OLD && child_age != AGE_IMMORTAL)
-		return TRUE
-	if(parent_age == AGE_IMMORTAL && child_age != AGE_IMMORTAL)
-		return TRUE
+/datum/controller/subsystem/familytree/proc/CanBeParentOf(mob/living/carbon/human/parent, mob/living/carbon/human/child)
+	var/parent_age = parent.age
+	var/child_age = child.age
+	if(!child.setspouse || child.setspouse == parent.real_name)
+		if(parent_age == AGE_ADULT)
+			return FALSE
+		if(parent_age == AGE_MIDDLEAGED && child_age == AGE_ADULT)
+			return TRUE
+		if(parent_age == AGE_OLD && child_age != AGE_OLD && child_age != AGE_IMMORTAL)
+			return TRUE
+		if(parent_age == AGE_IMMORTAL && child_age != AGE_IMMORTAL)
+			return TRUE
 
 	return FALSE
 
@@ -145,7 +137,7 @@ SUBSYSTEM_DEF(familytree)
 	// Look for potential parents (older members who could be parents)
 	var/list/potential_parents = list()
 	for(var/datum/family_member/member in house.members)
-		if(member.person && CanBeParentOf(member.person.age, person.age))
+		if(member.person && CanBeParentOf(member.person, person))
 			potential_parents += member
 
 	// If we have potential parents, make this person a child
@@ -164,8 +156,12 @@ SUBSYSTEM_DEF(familytree)
 	if(!H || !status || istype(H, /mob/living/carbon/human/dummy))
 		return
 	//Exclude princes and princesses from having their parentage calculated.
-	if(H.mind?.assigned_role && is_type_in_list(H.mind.assigned_role, excluded_jobs))
+	if(H.mind?.assigned_role in excluded_jobs)
 		return
+	if(H.mind?.assigned_role in nomarry_jobs)
+		if(status != FAMILY_NONE)
+			AssignToHouse(H)
+			return
 	switch(status)
 		if(FAMILY_PARTIAL)
 			AssignToHouse(H)
@@ -194,7 +190,6 @@ SUBSYSTEM_DEF(familytree)
 		return
 
 	// Handle adding new royals to existing family
-	to_chat(H, "Status: [status]")
 	switch(status)
 		if(FAMILY_FATHER, FAMILY_MOTHER)
 			// If there's already a monarch, make them spouses
@@ -256,7 +251,7 @@ SUBSYSTEM_DEF(familytree)
 	current_royal.generation = 0  // Start at generation 12 to leave room for ancestors
 
 	// Update ruling family's species based on first member
-	ruling_family.dominant_species = current_royal.person.dna.species.base_name
+	ruling_family.dominant_species = current_royal.person.dna.species.type
 
 	// Generate ancestors
 	var/datum/family_member/current_ancestor = current_royal
@@ -323,11 +318,22 @@ SUBSYSTEM_DEF(familytree)
 	if(!H)
 		return
 
-	var/species = H.dna.species.base_name
+	var/our_race = H.dna.species.base_name
+	var/our_subrace = H.dna.species.sub_name
 	var/adopted = FALSE
 	var/datum/heritage/chosen_house
 	var/list/low_priority_houses = list()
 	var/list/high_priority_houses = list()
+
+	if(H.setspouse)
+		for(var/datum/heritage/house in families)
+			for(var/datum/family_member/M in house.members)
+				if(M.person && M.person.real_name == H.setspouse)
+					if(M.person.xenophobe == 1 && M.person.dna.species.base_name != our_race)
+						break
+					if(M.person.xenophobe == 2 && M.person.dna.species.sub_name != our_subrace)
+						break
+					chosen_house = house
 
 	// Prioritize houses with existing members but not too many
 	for(var/datum/heritage/house in families)
@@ -337,22 +343,23 @@ SUBSYSTEM_DEF(familytree)
 			low_priority_houses += house
 
 	// Try high priority houses first
-	for(var/datum/heritage/house in high_priority_houses)
-		if(house.dominant_species == species && house.members.len < 4)
-			if(!WouldCreateAgeConflict(house, H))
-				chosen_house = house
-				break
+	if(!chosen_house)
+		for(var/datum/heritage/house in high_priority_houses)
+			if(house.dominant_race == our_race && house.members.len < 4)
+				if(!WouldCreateAgeConflict(house, H))
+					chosen_house = house
+					break
 		// Small chance for adoption into different species family
-		if(prob(20) && house.members.len <= 8)
-			if(!WouldCreateAgeConflict(house, H))
-				chosen_house = house
-				adopted = TRUE
-				break
+			if(prob(20) && house.members.len <= 8)
+				if(!WouldCreateAgeConflict(house, H))
+					chosen_house = house
+					adopted = TRUE
+					break
 
 	// Try low priority houses if no high priority match
 	if(!chosen_house)
 		for(var/datum/heritage/house in low_priority_houses)
-			if(house.dominant_species == species)
+			if(house.dominant_race == our_race)
 				if(!WouldCreateAgeConflict(house, H))
 					chosen_house = house
 					break
@@ -368,7 +375,7 @@ SUBSYSTEM_DEF(familytree)
 			// Find suitable parents
 			var/list/potential_parents = list()
 			for(var/datum/family_member/member in house.members)
-				if(member.person && CanBeParentOf(member.person.age, person.age))
+				if(member.person && CanBeParentOf(member.person, person))
 					potential_parents += member
 
 			// Add as child with up to 2 parents
@@ -399,39 +406,42 @@ SUBSYSTEM_DEF(familytree)
 /// Human Helper proc to check gender choice based on pronouns
 
 /mob/living/carbon/human/proc/pronouns_match(mob/living/carbon/human/H, mob/living/carbon/human/other)
-	// ANY_GENDER always passes
-	if(H.gender_choice_pref == ANY_GENDER)
+	if(!H.gender_choice_pref)
+		H.gender_choice_pref = ANY_GENDER
+	if(!other.gender_choice_pref)
+		other.gender_choice_pref = ANY_GENDER
+	var/our_gender = H.pronouns
+	var/other_gender = other.pronouns
+	if(H.gender_choice_pref == ANY_GENDER && other.gender_choice_pref == ANY_GENDER)
 		return TRUE
-
-	// Neutral pronouns can only match ANY_GENDER
-	var/my_neutral = (H.pronouns == THEY_THEM || H.pronouns == IT_ITS)
-	var/other_neutral = (other.pronouns == THEY_THEM || other.pronouns == IT_ITS)
-
-	// If I am neutral:
-	if(my_neutral)
-		return (other_neutral || other.gender_choice_pref == ANY_GENDER)
-
-	// If they are neutral(ANY_GENDER already checked):
-	if(other_neutral)
-		return FALSE
-
+	if(H.gender_choice_pref == ANY_GENDER)
+		if(other.gender_choice_pref == SAME_GENDER)
+			return our_gender == other_gender
+		if(other.gender_choice_pref == DIFFERENT_GENDER)
+			return our_gender != other_gender
+		return TRUE
+	if(other.gender_choice_pref == ANY_GENDER)
+		if(H.gender_choice_pref == SAME_GENDER)
+			return our_gender == other_gender
+		if(H.gender_choice_pref == DIFFERENT_GENDER)
+			return our_gender != other_gender
+		return TRUE
 	if(H.gender_choice_pref == SAME_GENDER)
-		return (H.pronouns == other.pronouns)
-
+		return our_gender == other_gender
 	if(H.gender_choice_pref == DIFFERENT_GENDER)
-		return (H.pronouns != other.pronouns)
+		return our_gender != other_gender
 
 	return FALSE
-
 /datum/controller/subsystem/familytree/proc/AssignToFamily(mob/living/carbon/human/H)
 	if(!H)
 		return
-	var/our_species = H.dna.species.base_name
+	var/our_race = H.dna.species.base_name
+	var/our_subrace = H.dna.species.sub_name
 	var/list/eligible_houses = list()
 
 	// Find houses that need a spouse
 	for(var/datum/heritage/house in families)
-		if(house.dominant_species != our_species)
+		if(house.dominant_race != our_race)
 			continue
 
 		// Check if there's a potential spouse
@@ -446,11 +456,15 @@ SUBSYSTEM_DEF(familytree)
 				else if(!H.setspouse)
 
 					if(!member.person.setspouse || member.person.setspouse == H.real_name)
-						// Pronouns matching according to Gender Preference
 						var/ok_gender_H = H.pronouns_match(H, member.person)
 						var/ok_gender_M = member.person.pronouns_match(member.person, H)
-
-						if(ok_gender_H && ok_gender_M && member.person.social_rank <= H.social_rank && member.person.social_rank >= H.social_rank - 1)
+						if((member.person.xenophobe == 1 || H.xenophobe == 1) && member.person.dna.species.base_name != our_race)
+							continue
+						if((member.person.xenophobe == 2 || H.xenophobe == 2) && member.person.dna.species.sub_name != our_subrace)
+							continue
+						if(member.person.mind?.assigned_role in nomarry_jobs)
+							continue
+						if(ok_gender_H && ok_gender_M && abs(H.social_rank - member.person.social_rank) <= 1)
 							eligible_houses += house
 							has_single_adult = TRUE
 							break
@@ -493,8 +507,8 @@ SUBSYSTEM_DEF(familytree)
 				return
 
 	// Create entirely new house if no match found
-	if(our_species != "Aasimar" || our_species != "Construct")
-		var/datum/heritage/new_house = new /datum/heritage(H, null, our_species)
+	if(our_subrace != /datum/species/aasimar)
+		var/datum/heritage/new_house = new /datum/heritage(H, null, our_subrace)
 		families += new_house
 
 /datum/controller/subsystem/familytree/proc/AssignNewlyWed(mob/living/carbon/human/H)
@@ -509,16 +523,16 @@ SUBSYSTEM_DEF(familytree)
 		if(!mutual_setspouse)
 			if(!H.pronouns_match(H, potential_spouse) || !potential_spouse.pronouns_match(potential_spouse, H))
 				continue // skip if gender preferences incompatible
-		if(potential_spouse.social_rank > H.social_rank || potential_spouse.social_rank < H.social_rank - 1)
+		if(abs(H.social_rank - potential_spouse.social_rank) > 1)
 			continue
-		if(potential_spouse.xenophobe == TRUE && potential_spouse.dna.species.base_name != H.dna.species.base_name)
+		if((potential_spouse.xenophobe == 1 || H.xenophobe == 1) && potential_spouse.dna.species.base_name != H.dna.species.base_name)
+			continue
+		if((potential_spouse.xenophobe == 2 || H.xenophobe == 2) && potential_spouse.dna.species.type != H.dna.species.type)
 			continue
 		// Check setspouse compatibility
 		var/priority = 0
 		if(mutual_setspouse)
 			priority = 3 // Perfect match
-		else if(H.setspouse == potential_spouse.real_name && !potential_spouse.setspouse)
-			priority = 2 // Good match
 		else if(potential_spouse.setspouse == H.real_name)
 			priority = 1 // Decent match
 		else if(!H.setspouse && !potential_spouse.setspouse)
@@ -548,12 +562,12 @@ SUBSYSTEM_DEF(familytree)
 			H.MarryTo(chosen_spouse)
 
 /datum/controller/subsystem/familytree/proc/AssignAuntUncle(mob/living/carbon/human/H)
-	var/species = H.dna.species.base_name
+	var/base_species = H.dna.species.base_name
 	var/datum/heritage/chosen_house
 
 	// Find houses with established families that could use an aunt/uncle
 	for(var/datum/heritage/house in families)
-		if(house.dominant_species != species)
+		if(house.dominant_race != base_species)
 			continue
 		if(!house.housename || house.members.len < 2)
 			continue

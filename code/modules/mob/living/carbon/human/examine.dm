@@ -97,7 +97,9 @@
 				rank_color = "ECB20A"
 			if(SOCIAL_RANK_ROYAL)
 				rank_color = "FFBF00"
-		var/social_strata = "<a href='?src=[REF(src)];social_strata=1'><font color='#[rank_color]'>⚜</font></A>"
+		var/social_strata = "<a href='?src=[REF(src)];social_strata=1'><font color='#[rank_color]'>⛭</font></A>"
+		if(family_datum)
+			social_strata = "<a href='?src=[REF(src)];social_strata=1'><font color='#[rank_color]'>⛯</font></A>"
 		var/display1
 		var/display2 = "[!HAS_TRAIT(usr, TRAIT_OUTLANDER) ? "[social_strata]" : " "]"
 		if(display_as_wanderer)

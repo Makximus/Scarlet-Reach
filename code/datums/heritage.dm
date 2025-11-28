@@ -95,6 +95,7 @@
 /datum/heritage
 	var/housename
 	var/datum/species/dominant_species
+	var/datum/species/dominant_race
 	var/list/members = list() // All family members
 	var/list/family_icons = list()
 	var/datum/family_member/founder // The person who started this family line
@@ -141,7 +142,6 @@
 	// Handle different relationship types
 	switch(relationship_type)
 		if(FAMILY_INLAW)
-			// Just add as family member, don't change parent/child relationships
 			member.adoption_status = FALSE
 		if(FAMILY_FATHER, FAMILY_MOTHER)
 			pass()
@@ -528,8 +528,9 @@
 			housename = new_name
 
 		dominant_species = majority_species
+		dominant_race = founder_person?.dna?.species?.base_name
 		if(!majority_species)
-			dominant_species = founder_person?.dna?.species?.base_name
+			dominant_species = founder_person?.dna?.species?.type
 
 /datum/heritage/proc/CreateFamilyMember(mob/living/carbon/human/person)
 	if(!ishuman(person))

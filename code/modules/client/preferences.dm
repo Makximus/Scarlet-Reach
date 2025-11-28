@@ -101,7 +101,7 @@ GLOBAL_LIST_EMPTY(chosen_names)
 	var/shake = TRUE
 	var/sexable = FALSE
 	var/compliance_notifs = TRUE
-	var/xenophobe_pref = FALSE
+	var/xenophobe_pref = 1
 
 	var/list/custom_names = list()
 	var/preferred_ai_core_display = "Blue"
@@ -452,13 +452,23 @@ GLOBAL_LIST_EMPTY(chosen_names)
 			var/datum/faith/selected_faith = GLOB.faithlist[selected_patron?.associated_faith]
 			dat += "<b>Faith:</b> <a href='?_src_=prefs;preference=faith;task=input'>[selected_faith?.name || "FUCK!"]</a><BR>"
 			dat += "<b>Patron:</b> <a href='?_src_=prefs;preference=patron;task=input'>[selected_patron?.name || "FUCK!"]</a><BR>"
-
-			dat += "<b>Family:</b> <a href='?_src_=prefs;preference=family'>[family ? family : "None"]</a><BR>"
-			if(family == FAMILY_FULL || family == FAMILY_NEWLYWED)
-				dat += "<b>Preferred Spouse:</b> <a href='?_src_=prefs;preference=setspouse'>[setspouse ? setspouse : "None"]</a><BR>"
-				dat += "<b>Preferred Gender:</b> <a href='?_src_=prefs;preference=gender_choice'>[gender_choice ? gender_choice : "Any Gender"]</a><BR>"
-			if(family == FAMILY_NEWLYWED)
-				dat += "<b>Restrict Species:</b> <a href='?_src_=prefs;preference=species_choice'>[xenophobe_pref ? "<font color='#aa0202'>YES</font>" : "<font color='#1cb308'>NO</font>"]</a><BR>"
+			if(agevetted)
+				dat += "<b>Family:</b> <a href='?_src_=prefs;preference=family'>[family ? family : "None"]</a><BR>"
+				if(family != FAMILY_NONE)
+					var/spousename = "Preferred Spouse"
+					if(family == FAMILY_PARTIAL)
+						spousename = "Preferred Parent"
+					dat += "<b>[spousename]:</b> <a href='?_src_=prefs;preference=setspouse'>[setspouse ? setspouse : "None"]</a><BR>"
+					if(family == FAMILY_NEWLYWED || family == FAMILY_FULL)
+						dat += "<b>Preferred Gender:</b> <a href='?_src_=prefs;preference=gender_choice'>[gender_choice ? gender_choice : "Any Gender"]</a><BR>"
+						var/species_text
+						if(xenophobe_pref == 1)
+							species_text = "<font color='#FFA500'>Race only</font>"
+						else if(xenophobe_pref == 2)
+							species_text = "<font color='#aa0202'>Subrace Only</font>"
+						else
+							species_text = "<font color='#1cb308'>Unrestricted</font>"
+						dat += "<b>Restrict Species:</b> <a href='?_src_=prefs;preference=species_choice'>[species_text]</a><BR>"
 
 			dat += "<b>Dominance:</b> <a href='?_src_=prefs;preference=domhand'>[domhand == 1 ? "Left-handed" : "Right-handed"]</a><BR>"
 
@@ -2420,6 +2430,9 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 
 					else if(new_family)
 						family = new_family
+						setspouse = null
+						gender_choice = ANY_GENDER
+						xenophobe_pref = 1
 				//Setspouse is part of the family subsystem. It will check existing families for this character and attempt to place you in this family.
 				if("setspouse")
 					var/newspouse = tgui_input_text(user, "INPUT THE IDENTITY OF ANOTHER HERO", "TIL DEATH DO US PART")
@@ -2439,9 +2452,16 @@ Slots: [job.spawn_positions] [job.round_contrib_points ? "RCP: +[job.round_contr
 						if(new_gender_choice)
 							gender_choice = new_gender_choice
 				if("species_choice")
-					xenophobe_pref = !xenophobe_pref
-					if(xenophobe_pref)
-						to_chat(user, "Spouse species will be restricted to your base species type.")
+					xenophobe_pref += 1
+					if(xenophobe_pref > 2)
+						if(family == FAMILY_FULL)
+							xenophobe_pref = 1
+						else
+							xenophobe_pref = 0
+					if(xenophobe_pref == 1)
+						to_chat(user, "Spouse species will be restricted to your race.")
+					else if(xenophobe_pref == 2)
+						to_chat(user, "Spouse species will be restricted to your subrace.")
 					else
 						to_chat(user, "Spouse species is unrestricted.")
 				if("hotkeys")
