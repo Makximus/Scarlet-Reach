@@ -5,7 +5,7 @@
 	faction = "Station"
 	total_positions = 1
 	spawn_positions = 1
-	allowed_races = /datum/species/ogre
+	allowed_races = OGRE_RACE_TYPES
 	allowed_sexes = list(MALE)
 	tutorial = "You are a travelling Ogre, who once originated from Gronn. You're so, so very hungry."
 	outfit = null
@@ -22,4 +22,3 @@
 	cmode_music = 'sound/music/combat.ogg'
 
 	job_traits = list(TRAIT_OUTLANDER)
-
