@@ -2,7 +2,7 @@
     "full": {
         "hello": "pryvit",
 		"goodbye": "poka",
-		"yes": ["tak", "da"],
+		"yes": "da",
 		"no": "net",
 		"thanks": "dyakuyu",
 		"love": "lyubov",
@@ -71,6 +71,10 @@
 		"yippee": "ura",
 		"hooray": "ura",
 		"hurrah": "ura",
+		"forward": "forward!",
+		"forwards!": "goida!",
+		"advance!": "goida!",
+		"charge!": "goida!",
 		"rebellion": "revolyutsiya",
 		"revolution": "revolyutsiya",
 		"captain": "kapitan",
@@ -97,7 +101,9 @@
 		"fucking hell": "suka blyat",
 		"fuck you": "suka blyat",
 		"glory to": "slava",
-		"glory to the": "slava"
+		"glory to the": "slava",
+		"let's go": "goida",
+		"come on": "goida"
 
 	},
     "syllable": {
