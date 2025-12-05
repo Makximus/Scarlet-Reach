@@ -136,7 +136,7 @@
 
 /obj/effect/proc_holder/spell/targeted/shapeshift/witch/Shapeshift(mob/living/caster)
 	// Do-after before transforming
-	if(!do_after(caster, 5 SECONDS, target = caster))
+	if(!do_after(caster, 3 SECONDS, target = caster))
 		to_chat(caster, span_warning("Transformation interrupted!"))
 		revert_cast(caster)  // Refund the cooldown
 		return
@@ -153,7 +153,7 @@
 	
 	// Add do-after for witches when reverting
 	shape.visible_message(span_warning("[shape] begins to shift back!"), span_notice("I begin to transform..."))
-	if(!do_after(shape, 5 SECONDS, target = shape))
+	if(!do_after(shape, 3 SECONDS, target = shape))
 		to_chat(shape, span_warning("Transformation revert interrupted!"))
 		revert_cast(shape)  // Refund the cooldown
 		return
