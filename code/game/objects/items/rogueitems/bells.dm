@@ -107,11 +107,16 @@
 		if(distance <= 7)
 			to_chat(player, span_notice("The church bell rings, echoing solemnly through the area."))
 			continue
-		if(distance >= 200)
+		if(distance <= 150)
+			to_chat(player, span_notice("The church bell rings, echoing solemnly through the area."))
+			player.playsound_local(get_turf(player), 'sound/misc/bell.ogg', 35, FALSE, pressure_affected = FALSE)
 			continue
 
+		to_chat(player, span_notice("The church bell rings, echoing distantly from afar."))
 		player.playsound_local(get_turf(player), 'sound/misc/bell.ogg', 35, FALSE, pressure_affected = FALSE)
-		to_chat(player, span_notice("The church bell rings, echoing solemnly through the area."))
+
+
+
 
 /obj/item/jingle_bells
 	name = "jingling bells"
