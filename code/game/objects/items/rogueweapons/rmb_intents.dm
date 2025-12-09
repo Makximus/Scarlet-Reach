@@ -61,7 +61,7 @@
 	desc = "Your attacks are more precise but have a longer recovery time. Higher critrate with precise attacks.\n(RMB WHILE COMBAT MODE IS ACTIVE) Bait out your targeted limb to the enemy. If it matches where they're aiming, they will be thrown off balance."
 	icon_state = "rmbaimed"
 
-/datum/rmb_intent/aimed/special_attack(mob/living/user, atom/target)
+/mob/living/proc/attempt_bait(mob/living/user, atom/target)
 	if(istype(src, /mob/living/carbon/human/species/skeleton))
 		return
 	if(!user)
@@ -104,7 +104,6 @@
 		if(ARMOR_CLASS_HEAVY)
 			fatiguemod = 3
 
-
 	HT.apply_status_effect(/datum/status_effect/debuff/baited)
 	HT.apply_status_effect(/datum/status_effect/debuff/exposed)
 	HT.apply_status_effect(/datum/status_effect/debuff/clickcd, 5 SECONDS)
@@ -137,6 +136,9 @@
 	HU.OffBalance(2 SECONDS)
 	HT.OffBalance(2 SECONDS)
 	playsound(user, 'sound/combat/riposte.ogg', 100, TRUE)
+
+/datum/rmb_intent/aimed/special_attack(mob/living/user, atom/target)
+	user.attempt_bait(user, target)
 
 /datum/rmb_intent/strong
 	name = "strong"
@@ -180,7 +182,7 @@
 	desc = "(RMB WHILE DEFENSE IS ACTIVE) A deceptive half-attack with no follow-through, meant to force your opponent to open their guard. Useless against someone who is dodging."
 	icon_state = "rmbfeint"
 
-/datum/rmb_intent/feint/special_attack(mob/living/user, atom/target)
+/mob/living/proc/attempt_feint(mob/living/user, atom/target)
 	if(istype(src, /mob/living/carbon/human/species/skeleton))
 		return
 	if(!isliving(target))
@@ -239,6 +241,8 @@
 	to_chat(L, span_danger("I fall for [user.p_their()] feint attack!"))
 	playsound(user, 'sound/combat/riposte.ogg', 100, TRUE)
 
+/datum/rmb_intent/feint/special_attack(mob/living/user, atom/target)
+	user.attempt_feint(user, target)
 
 /datum/rmb_intent/riposte
 	name = "defend"
@@ -246,7 +250,7 @@
 	icon_state = "rmbdef"
 	adjacency = FALSE
 
-/datum/rmb_intent/riposte/special_attack(mob/living/user, atom/target)	//Wish we could breakline these somehow.
+/mob/living/proc/attempt_riposte(mob/living/user, atom/target)
 	if(!user.has_status_effect(/datum/status_effect/buff/clash) && !user.has_status_effect(/datum/status_effect/debuff/clashcd))
 		if(!user.get_active_held_item()) //Nothing in our hand to Guard with.
 			return 
@@ -262,6 +266,9 @@
 			return
 		user.apply_status_effect(/datum/status_effect/buff/clash)
 
+/datum/rmb_intent/riposte/special_attack(mob/living/user, atom/target)	//Wish we could breakline these somehow.
+	user.attempt_riposte(user, target)
+
 /datum/rmb_intent/guard
 	name = "guarde"
 	desc = "(RMB WHILE DEFENSE IS ACTIVE) Raise your weapon, ready to attack any creature who moves onto the space you are guarding."
@@ -271,3 +278,45 @@
 	name = "weak"
 	desc = "Your attacks have -1 strength and will never critically-hit. Useful for longer punishments, play-fighting, and bloodletting."
 	icon_state = "rmbweak"
+
+/datum/rmb_intent/omni
+	name = "omni"
+	desc = "Intelligently attempts to apply other RMB & MMB intent actives based on the situation."
+	icon_state = "rmbguard" // needs a new icon_state or something
+
+/datum/rmb_intent/omni/special_attack(mob/living/user, atom/target)
+	var/mob/living/carbon/human/HU = user
+	if (isturf(target) || user == target)
+		// RMB on turf or self: DEFEND.
+		HU.attempt_riposte(user, target)
+		HU.changeNext_move(0.5 SECONDS)
+		return
+	
+	if (ismob(target) && user != target)
+		// RMB on mob (priority 0): has something grappled us, and can we kick? if so, attempt a kick.
+		if (!HU.IsOffBalanced())
+			var/mob/kick_target
+			for(var/obj/item/grabbing/G in HU.grabbedby)
+				if(G.grabbee)
+					kick_target = G.grabbee
+					break
+			if (kick_target)
+				HU.try_kick(kick_target)
+				HU.changeNext_move(0.5 SECONDS)
+				return
+
+		// RMB on mob (priority 1): check to see if a bait has any chance to succeed (match targeting zones between us and the target), if so, attempt it (ONLY check for matching zones, nothing else).
+		if (ishuman(target))
+			var/mob/living/carbon/human/HT = target
+			var/target_zone = HT.zone_selected
+			var/user_zone = HU.zone_selected
+			if (target_zone == user_zone)
+				HU.attempt_bait(user, target)
+				HU.changeNext_move(0.5 SECONDS)
+				return
+		
+		// RMB on mob (priority 2): attempt a feint if possible and off cooldown.
+		if (!HU.has_status_effect(/datum/status_effect/debuff/feintcd))
+			HU.attempt_feint(user, target)
+			HU.changeNext_move(0.5 SECONDS)
+			return
