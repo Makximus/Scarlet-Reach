@@ -87,15 +87,15 @@
 
 	tcompare = object
 
-	if(mob.used_intent)
-		mob.used_intent.on_mouse_up()
-
 	if(mouse_down_icon)
 		mouse_pointer_icon = mouse_down_icon
 
 	var/delay = mob.CanMobAutoclick(object, location, params)
 
 	var/was_charging = charging
+
+	if(was_charging && mob.used_intent)
+		mob.used_intent.on_mouse_up()
 
 	mob.atkswinging = null
 	charging = 0
