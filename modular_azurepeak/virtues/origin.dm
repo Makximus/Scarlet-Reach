@@ -84,7 +84,7 @@
 
 /datum/virtue/origin/raneshen
 	name = "Ranesheni"
-	desc = "I originate from the lush valleys and harsh badlands of Raneshen. Home to the zealous sun elves, the region sits at the gateway between the East and West. Recently engulfed in a violent holy war between the followers of the Old God and the holy warriors of Astrata.<br>"
+	desc = "I originate from the lush valleys and harsh badlands of Raneshen. Home to the zealous sun elves, the region sits at the gateway between the East and West. Recently engulfed in a violent holy war between the followers of the Old God and the divine Justiciars of Astrata.<br>"
 	restricted = TRUE
 	races = list(/datum/species/elf/dark,
 				/datum/species/elf/sun,
@@ -98,12 +98,12 @@
 				/datum/species/dracon,
 				/datum/species/harpy
 )
-	origin_desc = "Home to the zealous sun elves, the region of Raneshen sits at the gateway between the East and West.<br> Its lands were once ruled by the Solarin, a divine \
-	caste of Astratan sun elf paladins who deeply venerated Astrata and practiced widespread humen slavery. The empire met its end when an Otavan missionary brought the \
-	word of PSYDON to Raneshen, sparking a slave rebellion that saw the reign of the Solarin fractured into disconnected elven and humen states. Religious violence \
-	between Astratan and Psydonians is even more widespread in Raneshen than it is in the West.<br> The region itself is known for lush river-valleys, with lethally-hot \
-	deserts and harsh, rocky badlands forming natural borders. Most trade from Kazengun and Naledi flows through Raneshen, and Ranesheni merchants are said to be just as \
-	vicious as their sword-sworn Janissaries."
+	origin_desc = "Home to the zealous Sun Elves, the region of Raneshen sits at the gateway between the East and West. Its lands were once ruled by Dominion of the Sun, \
+	a religious Elven ethnostate who worshipped Astrata and Astrata only. Known for its brutal treatment of lesser races, the Dominion met its end at the hands of a \
+	Psydonite slave rebellion half a century ago. It was fractured into several Elven successor states, each one claiming the legacy of the ancient Dominion, while human-led kingdoms \
+	and rebel groups still vie for control over the region. Raneshen remains a hotbed of religious and ethnic conflict, and many refugees have fled to the West seeking sanctuary \
+	— or hoping to bring their holy war along with them. The region itself is known for lush river-valleys, with lethally-hot deserts and harsh, rocky badlands forming natural borders. \
+	Most trade from Kazengun and Naledi flows through Raneshen, and Ranesheni merchants are said to be just as vicious as the Solar Justiciars." 
 
 /datum/virtue/origin/naledi
 	name = "Naledian"
