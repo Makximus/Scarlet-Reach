@@ -954,7 +954,7 @@
 						return
 					var/mob/living/L = user
 					user.visible_message(span_notice("[user] begins training on [src]..."))
-					while(do_after(user, 2 SECONDS, target = src))
+					while(do_after(user, 1 SECONDS, target = src))
 						if(!(L.mobility_flags & MOBILITY_STAND))
 							to_chat(user, span_warning("You are knocked down and stop training."))
 							break
